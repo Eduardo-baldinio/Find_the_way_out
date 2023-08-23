@@ -1,27 +1,17 @@
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class Player : MonoBehaviour
 {
-    public float speed = 400f;
     public float inputHorizontal;
+    public bool isJump;
+
+    [SerializeField] private float speed = 400f;
     [SerializeField] private float jumpForce = 60f;
-    [SerializeField] private float gravityForce = -9.81f;
 
-    float deltaY;
-    float move;
-
-
-    private Vector2 movement;
-
-    public bool isJump = false;
-    private bool isGrounded;
+    [SerializeField] private bool isGrounded;
 
     private Rigidbody2D rb;
     private SpriteRenderer _spriteRenderer;
-
-
-    private Vector2 _playerVelocity;
 
     public void Start()
     {
@@ -31,48 +21,42 @@ public class Player : MonoBehaviour
 
     private void Update()
     { 
-        Jump();
+        Grounded();
+        PlayerJump();
     }
 
     private void FixedUpdate()
     {
-        if(isGrounded)
-        {
-            _playerVelocity.y = gravityForce;
-        }
-
-        Walk();
+        PlayerWalk();
+        PlayerFlip();
     }
 
-    private void Walk()
+    private void PlayerWalk()
     {
-        Vector2 pos = transform.position;
+        Vector2 movement = new Vector2(inputHorizontal * speed * Time.deltaTime, rb.velocity.y);
 
-        movement = new Vector2(inputHorizontal * speed * Time.deltaTime, _playerVelocity.y);
-       //move = inputHorizontal * speed * Time.deltaTime;
-       //_playerVelocity.x = inputHorizontal * speed * Time.deltaTime;
-        
-        //rb.velocity = movement;
+        rb.velocity = movement;
+    }
 
-        rb.MovePosition(pos + movement);
-
-        _playerVelocity.y += gravityForce * Time.deltaTime;
-
-        if (isJump )
-        {
-            rb.MovePosition(_playerVelocity);
-        }
-
-        //rb.MovePosition(pos + _playerVelocity);
-
+    private void PlayerFlip()
+    {
         if (inputHorizontal > 0)
         {
             _spriteRenderer.flipX = false;
-            
+
         }
-        else if(inputHorizontal < 0)
+        else if (inputHorizontal < 0)
         {
             _spriteRenderer.flipX = true;
+        }
+    }
+
+    private void PlayerJump()
+    {
+        if (isGrounded && isJump)
+        {
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            isGrounded = false;
         }
     }
 
@@ -96,16 +80,22 @@ public class Player : MonoBehaviour
 
     }
 
-    private void Jump()
+    private void Grounded()
     {
-        if (isGrounded && isJump)
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down);
+        Debug.DrawRay(transform.position, Vector2.down * hit.distance, Color.red);
+
+        if(hit.collider != null)
         {
-            //rb.velocity = new Vector2(move, jumpForce);
-            _playerVelocity.y = jumpForce;
-            isGrounded = false;
+            float distance = Mathf.Abs(hit.point.y -  transform.position.y);
+
+            if (distance <= 0.83f)
+            {
+                isGrounded = true;
+            }
         }
     }
-
+    /*
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.tag == "Grounded")
@@ -115,5 +105,7 @@ public class Player : MonoBehaviour
 
         // Сделать через Raycast2d;
     }
+
+    */
 }
 

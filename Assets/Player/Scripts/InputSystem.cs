@@ -3,12 +3,10 @@ using UnityEngine;
 public class InputSystem : MonoBehaviour
 {
     private Player player;
-    private AnimationPlayer playerAnimation;
-   
+    
     void Start()
     {
         player = GetComponent<Player>();
-        playerAnimation = GetComponent<AnimationPlayer>();
     }
 
     private void FixedUpdate()
